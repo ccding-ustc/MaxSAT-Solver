@@ -1,11 +1,10 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.List;
-import java.io.IOException;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -14,15 +13,18 @@ import java.util.Set;
  * 2016年3月5日下午8:06:07
  */
 public class IFormula{
-	private  List<IClause> clauses; //所有的clauses
-	private ILiteral[] vars; //formula的所有vars
-	private List<ILiteral> literals;
+	List<IClause> clauses; //所有的clauses
+	ILiteral[] vars; //formula的所有vars
+	int nbVar, nbClas;
+	List<IVariable> variables;
 	Set<ILiteral> satLits;
 	Set<IClause> satClas;
-	int nbVar, nbClas;
 	Set<IClause> unsatClas;
 	Set<ILiteral> unsatLits;
-	Set<IVariable> variables;
+	List<IVariable> visitedVars;
+	List<IVariable> unVisitedVars;
+	int minUnsatNum;
+	
 	
 
 
@@ -36,15 +38,13 @@ public class IFormula{
 		nbClas = nbclauses;
 		vars = new ILiteral[nbvars];
 		clauses = new ArrayList<>(nbclauses);
-		literals = new ArrayList<>(nbvars*2);
+		variables = new ArrayList<>(nbvars);
 		satLits = new HashSet<>(nbvars*2);
 		unsatLits = new HashSet<>(nbvars*2);
 		satClas = new HashSet<>(nbclauses);
 		unsatClas = new HashSet<>(nbclauses);
-		variables = new HashSet<>(nbvars);
-
-		
-		
+		visitedVars = new ArrayList<>(nbvars);
+		unVisitedVars = new ArrayList<>(nbvars);
 	}
 	
 	/**
@@ -67,7 +67,49 @@ public class IFormula{
 	}
 	
 	/**
-	 * 通过vars添加clause
+	 * 
+	 *  初始化每个 variable 的邻居，并设置相应的 degree
+	 */
+	public void setVarsNeighbors(){
+		IVariable tmp = null;
+		for(IVariable var: variables){
+			for(ILiteral lit: var.lit.neighbors){
+				tmp = this.getVariable(lit);
+				if(!var.neighbors.contains(tmp)){
+					var.neighbors.add(tmp);
+				}
+					
+			}
+			for(ILiteral lit: var.oppositeLit.neighbors){
+				tmp = this.getVariable(lit);
+				if(!var.neighbors.contains(tmp)){
+					var.neighbors.add(tmp);
+				}
+			}
+			var.initDegree = var.neighbors.size();
+			var.degree = var.initDegree;
+
+		}
+		unVisitedVars.addAll(variables);
+		
+	}
+	
+	/**
+	 * 
+	 *  通过 lit 找到对应的 variable
+	 * @param lit
+	 * @return
+	 */
+	private IVariable getVariable(ILiteral lit){
+		for(IVariable var: variables){
+			if(lit.id == var.lit.id || lit.id == var.oppositeLit.id)
+				return var;
+		}
+		return null;
+	}
+	
+	/**
+	 *  通过vars添加clause
 	 * @param vars
 	 */
 	public void addClause(ArrayList<ILiteral> lits) {
@@ -84,56 +126,20 @@ public class IFormula{
 	}
 	
 	/**
-	 * get vars 
-	 * @return vars
+	 *  set literals
 	 */
-	public ILiteral[] getvars(){
-		return vars;
-	}
-	public List<ILiteral> getLiterals() {
-		return literals;
-	}
-	/**
-	 * get clauses	
-	 * @return clauses
-	 */
-	public List<IClause> getClauses() {
-		return this.clauses;
-	}
-	/**
-	 * set literals
-	 */
-	public void setLiterals(){
+	public void setVariables(){
 		for (int i = 0; i < vars.length; i++) {
 			if(vars[i]!=null){
-				literals.add(vars[i]);
-				literals.add(vars[i].opposite);
+				vars[i].unsatClas.addAll(vars[i].getClas());
+				vars[i].opposite.unsatClas.addAll(vars[i].opposite.getClas());
 				variables.add(new IVariable(vars[i]));
 			}
 		}
 	}
 	
+	
 
-	
-	public ILiteral getMaxWeightUnsatLit(){
-		int minWeight = Integer.MIN_VALUE;
-		ILiteral maxWeightUnsatLit = null;
-		for(ILiteral lit: unsatLits){
-			if(lit.weight > minWeight && !lit.lastModified && lit.unsatClas.size()>0){
-				minWeight = lit.weight;
-				maxWeightUnsatLit = lit;
-			}
-		}
-		return maxWeightUnsatLit;
-	}
-	
-	
-	
-	
-	public ILiteral getRandomUnsatLit(){
-		int idx = (int)(Math.random()*unsatLits.size());
-		return (ILiteral) unsatLits.toArray()[idx];
-	}
 	
 	
 	/**
@@ -142,43 +148,29 @@ public class IFormula{
 	 * then, the complementary set of all vertexes is independent set
 	 * @return independent set
 	 */
-	public Set<ILiteral> getIndependentSet(double randomCoef){
-		Set<ILiteral> vertexCover = new HashSet<>();
-		Set<IClause> coverEdges = new HashSet<>();
-		Set<ILiteral> independentSet = new HashSet<>(literals);
-		
-		ILiteral lit;
-		if(Math.random() < randomCoef)
-			Collections.sort(literals);
+	public Set<IVariable> getIndependentGroup(double randomCoef){
+		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
 
-		for(int i=0; i<literals.size(); i++){
-			if(coverEdges.size()==clauses.size())
-				break;
-			lit = literals.get(i);
-			vertexCover.add(lit);
-			coverEdges.addAll(lit.getClas());	
+		Set<IVariable> independentSet = new HashSet<>();
+		IVariable var;
+		while(!tmp.isEmpty()){
+			if(Math.random() < randomCoef){
+				var = Collections.min(tmp);
+			}else{
+				var = tmp.get((int)(Math.random() * tmp.size()));
+			}
+			independentSet.add(var);
+			tmp.remove(var);
+			tmp.removeAll(var.neighbors);
 		}
-		independentSet.removeAll(vertexCover);
 		return independentSet;
-		
 	}
 	
-	/**
-	 * 
-	 * TODO 查找 formula 中从未访问过的 literal 并返回 
-	 * @return
-	 */
-	public List<ILiteral> getUnvisitedLits(){
-		List<ILiteral> unvisitedLits = new ArrayList<>();
-		for(ILiteral l: literals){
-			if(!l.forbid){
-				unvisitedLits.add(l.getClas().size()>l.opposite.getClas().size()
-						? l:l.opposite);
-				l.forbid = true;
-				l.opposite.forbid = true;
-			}
-		}
-		return unvisitedLits;
+	
+	
+	public void removeGroupFromFormula(Set<IVariable> group){
+		unVisitedVars.removeAll(group);
+		visitedVars.addAll(group);
 	}
 	
 	public void increaseLitsWeightinUnsatClas(){
@@ -190,32 +182,36 @@ public class IFormula{
 	}
 	
 	
-	/**
-	 * 
-	 * TODO delete conflict lit from lits 
-	 * @param Lits
-	 */
-	public void removeConflictLits(List<ILiteral> Lits){
-		Set<ILiteral> conflictAgs = new HashSet<>();
-		ILiteral delAg;//delete literal
-		for (ILiteral ag : Lits) {
-			if(ag.forbid){
-				conflictAgs.add(ag);
+	public ILiteral getMaxWeightFlipLit(){
+		List<ILiteral> tmp = new ArrayList<>(unsatLits);
+		ILiteral lit = null;
+		while(tmp != null){
+			lit = Collections.max(tmp);
+			if(! lit.lastModified && lit.unsatClas.size() > 0){
+				break;
+			}else{
+				tmp.remove(lit);
+				lit = null;
 			}
-			else{
-				//group contains lit and lit.opposite(conflict), must delete lit or lit.opposite
-				if (Lits.contains(ag.opposite)&&
-						!(conflictAgs.contains(ag)||conflictAgs.contains(ag.opposite))) 
-					{	
-						delAg = ag.getClas().size()>ag.opposite.getClas().size() ?
-								ag : ag.opposite;
-						conflictAgs.add(delAg);
-					}
-			}	
 		}
-		Lits.removeAll(conflictAgs);
-		conflictAgs.clear();
+		return lit;
 	}
+	
+	
+	public ILiteral getRandomFlipLit(){
+		List<ILiteral> tmp = new ArrayList<>(unsatLits);
+		ILiteral lit = null;
+		while(tmp != null){
+			lit = tmp.get((int)(Math.random()*tmp.size()));
+			if(! lit.lastModified){
+				break;
+			}else{
+				tmp.remove(lit);
+			}
+		}
+		return lit;
+	}
+		
 	
 	/**
 	 * 
@@ -224,15 +220,11 @@ public class IFormula{
 	 * @throws IOException 
 	 */
 	
-	public void announceSatLit(ILiteral lit){
-		lit.forbid = true;
-		lit.opposite.forbid = true;
-		
-
-		
+	public void announceSatLit(ILiteral lit){				
 		
 		for(IClause c: lit.getClas()){
-			c.satLitsNum++;
+			if(!this.satLits.contains(lit))
+				c.satLitsNum++;
 			if(this.unsatLits.contains(lit))
 				c.unsatLitsNum--;
 			this.satClas.add(c);
@@ -240,16 +232,17 @@ public class IFormula{
 				this.unsatClas.remove(c);
 			
 			for(ILiteral l : c.literals){
-				l.degree -= c.unsatLitsNum;
 				//对 clause c 中所有 lits 通知  c 已满足
-				l.satClas.add(c);
+				if(! l.satClas.contains(c))
+					l.satClas.add(c);
 				if(l.unsatClas.contains(c))
 					l.unsatClas.remove(c);
 			}
 			
 		}
 		for(IClause c: lit.opposite.getClas()){
-			c.unsatLitsNum++;
+			if(! this.unsatLits.contains(lit.opposite))
+				c.unsatLitsNum++;
 			if(this.satLits.contains(lit.opposite))
 				c.satLitsNum--;
 			if(c.unsatLitsNum == c.literals.size()){
@@ -258,10 +251,8 @@ public class IFormula{
 					this.satClas.remove(c);
 				//对 clause c 中所有 lits 通知  c 不满足
 				for(ILiteral l : c.literals){
-					if(l.degree < l.initDegree)
-						l.degree += c.unsatLitsNum;
-					//对 clause c 中所有 lits 通知  c 已满足
-					l.unsatClas.add(c);
+					if(! l.unsatClas.contains(c))
+						l.unsatClas.add(c);
 					if(l.satClas.contains(c))
 						l.satClas.remove(c);
 				}
@@ -288,30 +279,26 @@ public class IFormula{
 		}
 	}
 	
-	
-	/**
-	 * 
-	 * TODO reset formula information to origin status
-	 */
-	public void reset(){
-		satClas.clear();
-		unsatClas.clear();
-		satLits.clear();
-		unsatLits.clear();
-		
-		for(ILiteral l: literals){
-			l.forbid = false;
-			l.degree = l.initDegree;
-			l.lastModified = false;
-			l.satClas.clear();
-			l.unsatClas.clear();
+	public void resetFormula(){
+		this.unVisitedVars.addAll(this.variables);
+		this.visitedVars.clear();
+		this.satClas.clear();
+		this.unsatClas.clear();
+		this.satLits.clear();
+		this.unsatLits.clear();
+		for(IVariable v: this.variables){
+			v.degree = v.initDegree;
+			v.visited = false;
+			v.lit.satClas.clear();
+			v.lit.unsatClas.addAll(v.lit.getClas());
+			v.oppositeLit.satClas.clear();
+			v.oppositeLit.unsatClas.addAll(v.oppositeLit.getClas());
 		}
-		for(IClause c: clauses){
-			c.unsatLitsNum = 0;
+		for(IClause c: this.clauses){
 			c.satLitsNum = 0;
+			c.unsatLitsNum = 0;
 		}
+			
 	}
-	
-	
 	
 }
