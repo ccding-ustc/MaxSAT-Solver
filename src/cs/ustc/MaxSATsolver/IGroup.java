@@ -37,12 +37,9 @@ public class IGroup {
 
 		for(IVariable var: agents){
 			if(Math.random() < randomCoefSolution){
-				double litw1 = (double)var.lit.weight / (double)(var.lit.weight + var.lit.unsatClas.size());
-				double litw2 = (double)var.lit.unsatClas.size() / (double)(var.lit.weight + var.lit.unsatClas.size());
-				double oppositeLitw1 = (double)var.oppositeLit.weight / (double)(var.oppositeLit.weight + var.oppositeLit.unsatClas.size());
-				double oppositeLitw2 = (double)var.oppositeLit.unsatClas.size() / (double)(var.oppositeLit.weight + var.oppositeLit.unsatClas.size());
-				if(litw1*var.lit.weight + litw2*var.lit.unsatClas.size() > 
-				oppositeLitw1*var.oppositeLit.weight + oppositeLitw2*var.oppositeLit.unsatClas.size()){
+				
+				if(var.lit.weight + var.lit.unsatClas.size() > 
+				var.oppositeLit.weight + var.oppositeLit.unsatClas.size()){
 					solution.add(var.lit);
 				}else{
 					solution.add(var.oppositeLit);

@@ -26,14 +26,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class Solver  {
 	static final int  MAX_ITERATIONS1 = 50;
-	static final int  MAX_ITERATIONS2 = 100;
+	static final int  MAX_ITERATIONS2 = 5;
 	static final double RANDOM_COEF_SOLUTION = 0;
 	static final double RANDOM_COEF_INDEPENDENTSET = 0;
 	static final double RANDOM_COEF_NEXTGROUP = 0;
 	static final long TIME_LIMIT = 3*60*1000;
-	public Solver(){
-		
-	}
+	
 	/**
 	 * 将 formula 中每个 literal 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
 	 * 
@@ -98,8 +96,6 @@ public class Solver  {
 		}
 		return bestGroups;
 	}
-	
-	
 	
 	/**
 	 * 根据权重累加的策略， 迭代求解 formula 直到找到解或者达到预设的迭代次数
@@ -206,13 +202,13 @@ public class Solver  {
 	 * @throws ParseFormatException
 	 * @throws IOException
 	 */
-	
 	public IFormula getFormulaFromCNFFile(String cnfFile) throws ParseFormatException, IOException{
 		IFormula f = new IFormula();
 		CNFFileReader cnfFileReader = new CNFFileReader();
 		cnfFileReader.parseInstance(cnfFile, f);
 		return f;
 	}
+	
 	/**
 	 * 
 	 * @param args args[0] cnf file path, args[1] text file path that store results
@@ -221,22 +217,7 @@ public class Solver  {
 	 */
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
-		/*
-		Solver stmp = new Solver();
-		IFormula ftmp = stmp.getFormulaFromCNFFile("D:\\GitHub\\Max-SAT-Solver\\Max-SAT2016 benchmarks\\ms_crafted\\maxcut\\dimacs-mod\\hamming6-4.clq.cnf");
-		int[] s = {-47 , -14 , -12 , -16 , -44 , -46 , -9 , -42 , 49 , 33 , 51 , 52 , 39 , 54 , 36 , 55 , 24 , 20 , -31 , -60 , -26 , -27 , -32 , 19 , -28 , -57 , -13 , 53 , 17 , -29 , 37 , -41 , 1 , 3 , 2 , 7 , 40 , 4 , 5 , 8 , 35 , -10 , 38 , -58 , 34 , 50 , -62 , -59 , -48 , -15 , -45 , -43 , -63 , -11 , 6 , 56 , 18 , 23 , 21 , 22 , -30 , -64 , -61 , -25 };
-		Set<IClause> satClas = new HashSet<>(ftmp.clauses.size());
-		for(int ss: s){
-			IVariable v = ftmp.variables.get(Math.abs(ss)-1);
-			if(ss > 0){
-				satClas.addAll(v.lit.getClas());
-			}else{
-				satClas.addAll(v.oppositeLit.getClas());
-			}
-		}
-		System.out.println(satClas.size());
-		System.out.println(ftmp.clauses.size() - satClas.size());
-        */
+		
 		FileWriter fw = new FileWriter(new File("D:\\result.txt"));
 		
  		Workbook wb = new HSSFWorkbook();
@@ -247,6 +228,7 @@ public class Solver  {
 		for(File path: paths){
 			if(path.getName().equals("ms_industrial"))
 				continue;
+			
 			Path filesPath = Paths.get(path.getAbsolutePath());
 	 		final List<File> files = new ArrayList<File>();
 	 		SimpleFileVisitor<Path> finder = new SimpleFileVisitor<Path>(){
@@ -257,6 +239,7 @@ public class Solver  {
 	 		    }
 	 		};
 	 		java.nio.file.Files.walkFileTree(filesPath, finder);
+	 		
 			Sheet sheet = wb.createSheet(path.getName());
 			Row r = null;
 	 		int rowNum = 0;
@@ -268,10 +251,10 @@ public class Solver  {
 				IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
 				List<IGroup> groups = null;
 				List<ILiteral> solution = null;
-				int runs = 1000;
+				int runs = new Integer(args[5]);
 				while(runs-- != 0){
-		 			groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
-		 			solution = solver.iteratedSolveFormulaBasedOnGroups(formula, groups, MAX_ITERATIONS2, RANDOM_COEF_SOLUTION, RANDOM_COEF_NEXTGROUP);
+		 			groups = solver.getGroups(formula, new Float(args[2]));
+		 			solution = solver.iteratedSolveFormulaBasedOnGroups(formula, groups, new Integer(args[4]), new Float(args[3]), RANDOM_COEF_NEXTGROUP);
 		 			formula.resetFormula();
 				}
 				long time = System.currentTimeMillis()-begin;
