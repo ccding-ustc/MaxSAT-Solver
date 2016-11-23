@@ -33,7 +33,7 @@ public class IFormula{
 	 * @param nbvars
 	 * @param nbclauses
 	 */
-	public void setUniverse(int nbvars, int nbclauses) {
+	public void init(int nbvars, int nbclauses) {
 		nbVar = nbvars;
 		nbClas = nbclauses;
 		vars = new ILiteral[nbvars];
@@ -77,8 +77,7 @@ public class IFormula{
 				tmp = this.getVariable(lit);
 				if(!var.neighbors.contains(tmp)){
 					var.neighbors.add(tmp);
-				}
-					
+				}	
 			}
 			for(ILiteral lit: var.oppositeLit.neighbors){
 				tmp = this.getVariable(lit);
@@ -150,7 +149,6 @@ public class IFormula{
 	 */
 	public Set<IVariable> getIndependentGroup(double randomCoef){
 		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
-
 		Set<IVariable> independentSet = new HashSet<>();
 		IVariable var;
 		while(!tmp.isEmpty()){

@@ -1,6 +1,6 @@
 package cs.ustc.MaxSATsolver;
 /**
- * MaxSAT 求解器
+ * incomplete MaxSAT solver
  * @author ccding  2016年3月7日 上午8:39:11
  */
 
@@ -40,7 +40,6 @@ public class Solver  {
 	 * @return 不相交的各个分组（联盟）
 	 */
 	public List<IGroup> getGroups(IFormula f, double randomCoefIndependentSet) {
-		
 		List<IGroup> groups = new ArrayList<>();
 		while(true){
 			IGroup group = new IGroup(f.getIndependentGroup(randomCoefIndependentSet));
@@ -117,6 +116,7 @@ public class Solver  {
 		List<ILiteral> bestSolution = new ArrayList<>();
 		List<ILiteral> solution = new ArrayList<>();
 		formula.minUnsatNum = formula.clauses.size();
+		
 		int repeated = 0;
 		while(iterations-- != 0){
 			solution.clear();
@@ -163,7 +163,7 @@ public class Solver  {
 		
 		while(true){
 			
-			//若存在与所有组都不相关的组，则需要循环遍历
+			//若存在与所有组都不相关的组，则需要随机从剩下的组中选择一个组
 			if(group == null){
 				group = groups.get((int)(Math.random()*tmpGroups.size()));
 			}
@@ -206,12 +206,15 @@ public class Solver  {
 		IFormula f = new IFormula();
 		CNFFileReader cnfFileReader = new CNFFileReader();
 		cnfFileReader.parseInstance(cnfFile, f);
+		f.setVariables();
+		f.setVarsNeighbors();
 		return f;
 	}
 	
 	/**
+	 * 程序入口
 	 * 
-	 * @param args args[0] cnf file path, args[1] text file path that store results
+	 * @param args
 	 * @throws IOException
 	 * @throws ParseFormatException
 	 */
@@ -219,16 +222,19 @@ public class Solver  {
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 		
 		FileWriter fw = new FileWriter(new File("D:\\result.txt"));
-		
  		Workbook wb = new HSSFWorkbook();
 		OutputStream os = null;
+		
 		Solver solver = new Solver();
 		File rootPath = new File(args[0]);
 		File[] paths = rootPath.listFiles();
+		
 		for(File path: paths){
+			//跳过 industrial instances
 			if(path.getName().equals("ms_industrial"))
 				continue;
 			
+			//获取 path 目录下的所有 .cnf 文件路径
 			Path filesPath = Paths.get(path.getAbsolutePath());
 	 		final List<File> files = new ArrayList<File>();
 	 		SimpleFileVisitor<Path> finder = new SimpleFileVisitor<Path>(){
@@ -243,10 +249,12 @@ public class Solver  {
 			Sheet sheet = wb.createSheet(path.getName());
 			Row r = null;
 	 		int rowNum = 0;
+	 		
 	 		for(File file: files){
 	 			r = sheet.createRow(rowNum++);
 				r.createCell(0).setCellValue(file.getName());
 	 			System.out.println(file.getPath());
+	 			
 				long begin = System.currentTimeMillis();
 				IFormula formula = solver.getFormulaFromCNFFile(file.getPath());
 				List<IGroup> groups = null;

@@ -37,7 +37,6 @@ public class IGroup {
 
 		for(IVariable var: agents){
 			if(Math.random() < randomCoefSolution){
-				
 				if(var.lit.weight + var.lit.unsatClas.size() > 
 				var.oppositeLit.weight + var.oppositeLit.unsatClas.size()){
 					solution.add(var.lit);
@@ -61,27 +60,27 @@ public class IGroup {
 	 */
 	public static void initGroupNeighbors(List<IGroup> groups){
 		List<IVariable> tmp = new ArrayList<>();
-			List<IVariable> tmpCopy = new ArrayList<>();
-			IGroup groupTmp1 = null;
-			IGroup groupTmp2 = null;
-			for(int i=0; i<groups.size(); i++){
-				groupTmp1 = groups.get(i);
-				for(IVariable agent: groupTmp1.agents){
-					tmp.addAll(agent.neighbors);
-				}
-			
-				for(int j=i+1; j<groups.size(); j++){
-					tmpCopy.addAll(tmp);
-					groupTmp2 = groups.get(j);
-					tmpCopy.retainAll(groupTmp2.agents);
-					if(tmpCopy.size()>0){
-						groupTmp1.neighbors.put(groupTmp2, tmpCopy.size());
-						groupTmp2.neighbors.put(groupTmp1, tmpCopy.size());
-					}
-					tmpCopy.clear();
-				}
-				tmp.clear();
+		List<IVariable> tmpCopy = new ArrayList<>();
+		IGroup groupTmp1 = null;
+		IGroup groupTmp2 = null;
+		for(int i=0; i<groups.size(); i++){
+			groupTmp1 = groups.get(i);
+			for(IVariable agent: groupTmp1.agents){
+				tmp.addAll(agent.neighbors);
 			}
+		
+			for(int j=i+1; j<groups.size(); j++){
+				tmpCopy.addAll(tmp);
+				groupTmp2 = groups.get(j);
+				tmpCopy.retainAll(groupTmp2.agents);
+				if(tmpCopy.size()>0){
+					groupTmp1.neighbors.put(groupTmp2, tmpCopy.size());
+					groupTmp2.neighbors.put(groupTmp1, tmpCopy.size());
+				}
+				tmpCopy.clear();
+			}
+			tmp.clear();
+		}
 	}
 	
 	

@@ -68,7 +68,7 @@ public class CNFFileReader {
 		// 读取句子个数
 		expectedNbOfClauses = Integer.parseInt(stk.nextToken());
 		assert expectedNbOfClauses > 0;
-		formula.setUniverse(vars, expectedNbOfClauses);
+		formula.init(vars, expectedNbOfClauses);
 //		System.out.println("variables:"+vars+"   clauses:"+expectedNbOfClauses);
 	}
 
@@ -88,11 +88,11 @@ public class CNFFileReader {
 		int realNbOfClauses = 0;
 		
 		ILiteral[] voc = formula.vars;
-		ArrayList<ILiteral> literals = new ArrayList<ILiteral>(3);
+		ArrayList<ILiteral> literals = new ArrayList<ILiteral>(10);
 
 		nbVars = voc.length;
 		assert nbVars != 0;
-//		int ll = 0;
+
 		while (true) {
 			line = in.readLine();
 			if (line == null || line.equals("%")) {
@@ -118,7 +118,6 @@ public class CNFFileReader {
 					formula.addClause(literals);
 					literals.clear();
 					realNbOfClauses++;
-//					System.out.println(ll++);
 				}
 			}
 		}
@@ -141,8 +140,6 @@ public class CNFFileReader {
 			skipComments(in);
 			readProblemLine(in, formula);
 			readClauses(in, formula);
-			formula.setVariables();
-			formula.setVarsNeighbors();
 		} catch (IOException e) {
 			throw new ParseFormatException(e);
 		} catch (NumberFormatException e) {
