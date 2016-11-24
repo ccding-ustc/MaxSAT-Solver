@@ -147,9 +147,9 @@ public class IFormula{
 	 * then, the complementary set of all vertexes is independent set
 	 * @return independent set
 	 */
-	public Set<IVariable> getIndependentGroup(double randomCoef){
+	public List<IVariable> getIndependentGroup(double randomCoef){
 		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
-		Set<IVariable> independentSet = new HashSet<>();
+		List<IVariable> independentSet = new ArrayList<>();
 		IVariable var;
 		while(!tmp.isEmpty()){
 			if(Math.random() < randomCoef){
@@ -166,7 +166,7 @@ public class IFormula{
 	
 	
 	
-	public void removeGroupFromFormula(Set<IVariable> group){
+	public void removeGroupFromFormula(List<IVariable> group){
 		unVisitedVars.removeAll(group);
 		visitedVars.addAll(group);
 	}
@@ -219,7 +219,6 @@ public class IFormula{
 	 */
 	
 	public void announceSatLit(ILiteral lit){				
-		
 		for(IClause c: lit.getClas()){
 			if(!this.satLits.contains(lit))
 				c.satLitsNum++;

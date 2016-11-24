@@ -32,7 +32,18 @@ public class IVariable implements Comparable<IVariable>{
 	@Override
 	public int compareTo(IVariable var) {
 		//  Auto-generated method stub
-		return this.degree - var.degree;
+		int num1,num2;
+		if(var.lit.unsatClas.size() == 0){
+			num1 = var.oppositeLit.unsatClas.size() + var.oppositeLit.weight;
+		}else{
+			num1 = var.lit.unsatClas.size() + var.lit.weight;
+		}
+		if(this.lit.unsatClas.size() == 0){
+			num2 = this.oppositeLit.unsatClas.size() + this.oppositeLit.weight;
+		}else{
+			num2 = this.lit.unsatClas.size() + this.lit.weight;
+		}
+		return num2-num1;
 	}
 	
 	@Override

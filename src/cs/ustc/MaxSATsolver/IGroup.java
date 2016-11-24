@@ -1,11 +1,11 @@
 package cs.ustc.MaxSATsolver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 /**
  * 
  * @ClassName: IGroup
@@ -17,12 +17,12 @@ import java.util.Set;
  *
  */
 public class IGroup {
-	Set<IVariable> agents;
+	List<IVariable> agents;
 	List<ILiteral> solution;
 	Map<IGroup, Integer>  neighbors;
 	
-	public IGroup(Set<IVariable> agents){
-		this.agents = new HashSet<>(agents); 
+	public IGroup(List<IVariable> agents){
+		this.agents = new ArrayList<>(agents); 
 		solution = new ArrayList<>(agents.size());
 		neighbors = new HashMap<>();
 	}
@@ -32,27 +32,47 @@ public class IGroup {
 	 * 求每个组对应最好的解
 	 * @param randomCoefSolution 采用贪婪的随机性大小
 	 */
-	public void getSolution(double randomCoefSolution){
-		solution.clear();
-
+	public List<ILiteral> getSolution(double randomCoefSolution){
+		//构造每组的初始解，贪婪策略
+		if(solution.isEmpty()){
+			for(IVariable var: agents){	
+				solution.add(var.lit.unsatClas.size() > var.oppositeLit.unsatClas.size() ? var.lit : var.oppositeLit);
+			}
+			return solution;
+		}
+		
+		
+		List<ILiteral> flipLits = new ArrayList<>();
+		Collections.sort(agents);
 		for(IVariable var: agents){
-			if(Math.random() < randomCoefSolution){
-				if(var.lit.weight + var.lit.unsatClas.size() > 
-				var.oppositeLit.weight + var.oppositeLit.unsatClas.size()){
-					solution.add(var.lit);
-				}else{
+			if(flipVariable(var) > 0){
+				if(solution.contains(var.lit)){
+					solution.remove(var.lit);
 					solution.add(var.oppositeLit);
-				}
-			}else{
-				if(Math.random()>0.5){
-					solution.add(var.lit);
+					flipLits.add(var.oppositeLit);
 				}else{
-					solution.add(var.oppositeLit);
+					solution.remove(var.oppositeLit);
+					solution.add(var.lit);
+					flipLits.add(var.lit);
 				}
+				break;
 			}
 		}
+		return flipLits;
 	}
 	
+	public double flipVariable(IVariable var){
+		ILiteral satLit = solution.contains(var.lit) ? var.lit : var.oppositeLit;
+		ILiteral unsatLit = satLit.opposite;
+		double increasdeWeight = unsatLit.unsatClas.size() + ((double)unsatLit.weight) * 0.1;
+		double decreasedWeight = (double)satLit.weight * 0.1;
+		for(IClause c: satLit.satClas){
+			if(c.satLitsNum == 1)
+				decreasedWeight+=1;
+		}
+		return increasdeWeight - decreasedWeight;
+	} 
+
 	/**
 	 * 设置每个 group 的邻居， 两个 group 是邻居当且仅当组中 agent 出现在同一个 clause 中
 	 * 
