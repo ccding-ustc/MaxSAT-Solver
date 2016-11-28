@@ -29,7 +29,7 @@ public class Solver  {
 	static final int  MAX_ITERATIONS = 5000;
 	static final double RANDOM_COEF_SOLUTION = 0.7;
 	static final double RANDOM_COEF_INDEPENDENTSET = 0.8;
-	static final double RANDOM_COEF_NEXTGROUP = 1;
+	static final double RANDOM_COEF_NEXTGROUP = 0;
 	static final long TIME_LIMIT = 3*60*1000;
 	
 	/**
