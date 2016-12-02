@@ -55,7 +55,7 @@ public class IGroup {
 					solution.add(var.lit);
 					flipLits.add(var.lit);
 				}
-				break;
+//				break;
 			}
 		}
 		return flipLits;
