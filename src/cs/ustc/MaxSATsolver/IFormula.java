@@ -173,7 +173,7 @@ public class IFormula{
 	
 	public void increaseLitsWeightinUnsatClas(){
 		for(IClause c: unsatClas){
-			c.hardCoef++;
+//			c.hardCoef++;
 			for(ILiteral l: c.literals){
 				l.weight++;
 				if(l.weight > 1000)
