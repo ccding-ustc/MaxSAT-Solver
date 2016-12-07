@@ -26,10 +26,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 
 public class Solver  {
-	static final int  MAX_ITERATIONS = 500000;
+	static final int  MAX_ITERATIONS = 1000000;
 	static final double RANDOM_COEF_SOLUTION = 0.7;
 	static final double RANDOM_COEF_INDEPENDENTSET = 0.8;
-	static final double RANDOM_COEF_NEXTGROUP = 0.8;
+	static final double RANDOM_COEF_NEXTGROUP = 0;
 	
 	/**
 	 * 将 formula 中每个 literal 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
@@ -134,11 +134,12 @@ public class Solver  {
 	 */
 	public static void main(String[] args) throws IOException, ParseFormatException{
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");  
-		/*
+		
 		Solver stmp = new Solver();
-		IFormula ftmp = stmp.getFormulaFromCNFFile("D:\\Max-SAT2016 benchmarks\\all_instances\\ms_crafted\\maxcut\\abrame-habet\\v220\\s2v220c2500-2.cnf");
-		int[] s = {-169 , 186 , -56 , -167 , -13 , 62 , 145 , -212 , -14 , 101 , -124 , -40 , -29 , 184 , 132 , -204 , -51 , 39 , 7 , 2 , 92 , 151 , 106 , -200 , 77 , -121 , 129 , -66 , -110 , -19 , 199 , 12 , 24 , -104 , 42 , -176 , 179 , -135 , 163 , -55 , -195 , -74 , 189 , -34 , -86 , -207 , -82 , 65 , 79 , -68 , -160 , -60 , 220 , -30 , -183 , -131 , 112 , -154 , 178 , -54 , 164 , 133 , 93 , -127 , -38 , -119 , -44 , -162 , -152 , 159 , 61 , -15 , -206 , -48 , 33 , -211 , 202 , 210 , 137 , 156 , 146 , 88 , 217 , -102 , 117 , 168 , 185 , 123 , 59 , -16 , -190 , 8 , -149 , 193 , 70 , 173 , 181 , -17 , 26 , -85 , 161 , 205 , 1 , -41 , 3 , -87 , 140 , 25 , 49 , 219 , 97 , 31 , -141 , -177 , 187 , -158 , -209 , -37 , 122 , -201 , -192 , 46 , -194 , -142 , -113 , 116 , -11 , 35 , 114 , 18 , -32 , 95 , -144 , -182 , 75 , -197 , -28 , 105 , -96 , 10 , 57 , 134 , -147 , 22 , -196 , 108 , 143 , 175 , -188 , -71 , 43 , -69 , -23 , -78 , -76 , 198 , 216 , -215 , 47 , -98 , 136 , -150 , 72 , -213 , -5 , -166 , -63 , -90 , 99 , -171 , 172 , 130 , -180 , -118 , -111 , -191 , -165 , 125 , 58 , 4 , 20 , 109 , -155 , 50 , -214 , 53 , 9 , 203 , -170 , -73 , -84 , -115 , -64 , 67 , -100 , 138 , -120 , 208 , 81 , -80 , 36 , 27 , -126 , 89 , -148 , 21 , 103 , -6 , -218 , 83 , -107 , -139 , 128 , -45 , -157 , 52 , 153 , 91 , 94 , -174};
+		IFormula ftmp = stmp.getFormulaFromCNFFile("D:\\Max-SAT2016 benchmarks\\all_instances\\ms_crafted\\bipartite\\maxcut-140-630-0.7\\maxcut-140-630-0.7-16.cnf");
+		int[] s = {75 , -53 , -101 , 133 , -99 , 37 , -119 , 113 , -130 , 49 , 47 , -52 , -63 , 74 , -34 , -103 , 127 , -140 , 138 , 35 , 42 , 51 , 50 , -58 , 16 , 80 , -61 , -29 , 9 , 24 , -123 , 2 , 73 , -124 , -12 , 68 , -72 , 78 , -135 , 39 , -7 , -104 , -122 , 36 , -109 , -107 , 105 , 54 , 83 , 57 , -59 , -46 , 71 , 86 , 93 , -45 , 118 , 40 , -96 , -11 , -3 , -132 , -116 , -10 , -8 , -131 , 13 , -91 , 48 , -95 , 112 , -100 , -115 , 14 , -85 , -120 , 28 , -15 , -108 , -106 , 6 , -26 , -30 , -82 , 25 , 90 , 33 , 66 , 128 , 94 , -121 , -31 , 64 , 41 , 19 , 21 , -38 , -110 , 69 , 55 , 4 , 137 , 17 , -87 , 43 , 92 , 134 , 18 , 62 , 76 , 44 , -20 , 97 , -102 , -111 , 1 , -88 , 136 , -114 , -65 , -32 , -56 , -67 , -89 , -98 , 84 , -27 , -5 , 117 , -22 , -126 , -23 , 81 , -79 , 77 , -70 , -139 , -129 , 125 , -60 };
 		Set<IClause> satClas = new HashSet<>(ftmp.clauses.size());
+		Set<IClause> unsatClas = new HashSet<>(ftmp.clauses);
 		for(int ss: s){
 			IVariable v = ftmp.variables.get(Math.abs(ss)-1);
 			if(ss > 0){
@@ -147,9 +148,10 @@ public class Solver  {
 				satClas.addAll(v.oppositeLit.getClas());
 			}
 		}
+		unsatClas.removeAll(satClas);
 		System.out.println(satClas.size());
 		System.out.println(ftmp.clauses.size() - satClas.size());
-		*/
+	
 	    Date dt = new Date();  
 	    FileWriter fw = null;
 	    SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmm");  
@@ -211,9 +213,10 @@ public class Solver  {
 						bestSolution.clear();
 						bestSolution.addAll(solution);
 						System.out.println("o "+formula.minUnsatNum);
+						System.out.println(bestSolution.toString());
 						repeated = 0;
 					}else{
-						if(++repeated > 3000){
+						if(++repeated > 1000){
 							formula.unVisitedVars.addAll(formula.visitedVars);
 							formula.visitedVars.clear();
 							groups = solver.getGroups(formula, RANDOM_COEF_INDEPENDENTSET);
@@ -224,9 +227,9 @@ public class Solver  {
 		 		
 				long time = endTime-beginTime;
 				System.out.println(time);
-				System.out.println(solution.toString());
+				System.out.println(bestSolution.toString());
 				r.createCell(1).setCellValue(formula.minUnsatNum);
-				r.createCell(2).setCellValue(time/1000);
+				r.createCell(2).setCellValue((double)time/1000.0);
 //				System.out.println(formula.minUnsatNum);
 	 		}
 			
