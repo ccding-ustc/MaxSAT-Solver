@@ -147,7 +147,7 @@ public class IFormula{
 	 * then, the complementary set of all vertexes is independent set
 	 * @return independent set
 	 */
-	public List<IVariable> getIndependentGroup(double randomCoef){
+	public List<IVariable> getIndependentLeague(double randomCoef){
 		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
 		List<IVariable> independentSet = new ArrayList<>();
 		IVariable var;
@@ -166,9 +166,9 @@ public class IFormula{
 	
 	
 	
-	public void removeGroupFromFormula(List<IVariable> group){
-		unVisitedVars.removeAll(group);
-		visitedVars.addAll(group);
+	public void removeLeagueFromFormula(List<IVariable> league){
+		unVisitedVars.removeAll(league);
+		visitedVars.addAll(league);
 	}
 	
 	public void increaseLitsWeightinUnsatClas(){

@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * 
- * @ClassName: IGroup
+ * @ClassName: ILeague
  *
  * @Description:  
  *
@@ -16,12 +16,12 @@ import java.util.Map;
  * @date: 2016年10月19日 上午8:45:23
  *
  */
-public class IGroup {
+public class ILeague {
 	List<IVariable> agents;
 	List<ILiteral> solution;
-	Map<IGroup, Integer>  neighbors;
+	Map<ILeague, Integer>  neighbors;
 	
-	public IGroup(List<IVariable> agents){
+	public ILeague(List<IVariable> agents){
 		this.agents = new ArrayList<>(agents); 
 		solution = new ArrayList<>(agents.size());
 		neighbors = new HashMap<>();
@@ -55,7 +55,6 @@ public class IGroup {
 					solution.add(var.lit);
 					flipLits.add(var.lit);
 				}
-//				break;
 			}
 		}
 		return flipLits;
@@ -74,28 +73,28 @@ public class IGroup {
 	} 
 
 	/**
-	 * 设置每个 group 的邻居， 两个 group 是邻居当且仅当组中 agent 出现在同一个 clause 中
+	 * 设置每个 league 的邻居， 两个 league 是邻居当且仅当组中 agent 出现在同一个 clause 中
 	 * 
-	 * @param groups 
+	 * @param leagues 
 	 */
-	public static void initGroupNeighbors(List<IGroup> groups){
+	public static void initLeagueNeighbors(List<ILeague> leagues){
 		List<IVariable> tmp = new ArrayList<>();
 		List<IVariable> tmpCopy = new ArrayList<>();
-		IGroup groupTmp1 = null;
-		IGroup groupTmp2 = null;
-		for(int i=0; i<groups.size(); i++){
-			groupTmp1 = groups.get(i);
-			for(IVariable agent: groupTmp1.agents){
+		ILeague leagueTmp1 = null;
+		ILeague leagueTmp2 = null;
+		for(int i=0; i<leagues.size(); i++){
+			leagueTmp1 = leagues.get(i);
+			for(IVariable agent: leagueTmp1.agents){
 				tmp.addAll(agent.neighbors);
 			}
 		
-			for(int j=i+1; j<groups.size(); j++){
+			for(int j=i+1; j<leagues.size(); j++){
 				tmpCopy.addAll(tmp);
-				groupTmp2 = groups.get(j);
-				tmpCopy.retainAll(groupTmp2.agents);
+				leagueTmp2 = leagues.get(j);
+				tmpCopy.retainAll(leagueTmp2.agents);
 				if(tmpCopy.size()>0){
-					groupTmp1.neighbors.put(groupTmp2, tmpCopy.size());
-					groupTmp2.neighbors.put(groupTmp1, tmpCopy.size());
+					leagueTmp1.neighbors.put(leagueTmp2, tmpCopy.size());
+					leagueTmp2.neighbors.put(leagueTmp1, tmpCopy.size());
 				}
 				tmpCopy.clear();
 			}
