@@ -13,16 +13,17 @@ import java.util.HashSet;
  * 2016年3月5日下午8:06:07
  */
 public class IFormula{
-	List<IClause> clauses; //所有的clauses
-	ILiteral[] vars; //formula的所有vars
-	int nbVar, nbClas;
+	List<IClause> clauses;  //所有的句子集合
+	ILiteral[] vars;  //formula的所有变量集合
+	int nbVar; //变量个数
+	int nbClas; //句子个数
 	List<IVariable> variables;
 	Set<ILiteral> satLits;
 	Set<IClause> satClas;
 	Set<IClause> unsatClas;
 	Set<ILiteral> unsatLits;
-	List<IVariable> visitedVars;
-	List<IVariable> unVisitedVars;
+	List<IVariable> visVars;
+	List<IVariable> unVisVars;
 	int minUnsatNum;
 	
 	
@@ -43,8 +44,8 @@ public class IFormula{
 		unsatLits = new HashSet<>(nbvars*2);
 		satClas = new HashSet<>(nbclauses);
 		unsatClas = new HashSet<>(nbclauses);
-		visitedVars = new ArrayList<>(nbvars);
-		unVisitedVars = new ArrayList<>(nbvars);
+		visVars = new ArrayList<>(nbvars);
+		unVisVars = new ArrayList<>(nbvars);
 	}
 	
 	/**
@@ -89,7 +90,7 @@ public class IFormula{
 			var.degree = var.initDegree;
 
 		}
-		unVisitedVars.addAll(variables);
+		unVisVars.addAll(variables);
 		
 	}
 	
@@ -147,29 +148,24 @@ public class IFormula{
 	 * then, the complementary set of all vertexes is independent set
 	 * @return independent set
 	 */
-	public List<IVariable> getIndependentLeague(double randomCoef){
-		List<IVariable> tmp = new ArrayList<>(unVisitedVars);
-		List<IVariable> independentSet = new ArrayList<>();
+	public List<IVariable> getAgents(double gcl){
+		List<IVariable> agents = new ArrayList<>();
 		IVariable var;
-		while(!tmp.isEmpty()){
-			if(Math.random() < randomCoef){
+		while(!unVisitedVars.isEmpty()){
+			if(Math.random() < gcl){
 				var = Collections.min(tmp);
 			}else{
 				var = tmp.get((int)(Math.random() * tmp.size()));
 			}
-			independentSet.add(var);
+			agents.add(var);
 			tmp.remove(var);
 			tmp.removeAll(var.neighbors);
 		}
-		return independentSet;
+		return agents;
 	}
 	
 	
 	
-	public void removeLeagueFromFormula(List<IVariable> league){
-		unVisitedVars.removeAll(league);
-		visitedVars.addAll(league);
-	}
 	
 	public void increaseLitsWeightinUnsatClas(){
 		for(IClause c: unsatClas){
@@ -216,7 +212,7 @@ public class IFormula{
 	
 	/**
 	 * 
-	 * TODO 将 lit 设置为满足，并更新 formula 中的信息
+	 * 将 lit 设置为满足，并更新 formula 中的信息
 	 * @param lit
 	 * @throws IOException 
 	 */
@@ -269,7 +265,7 @@ public class IFormula{
 	}
 	/**
 	 * 
-	 * TODO 将 lits 中 所有 literal 都设置为满足，并更新 formula 中的信息
+	 * 将 lits 中 所有 literal 都设置为满足，并更新 formula 中的信息
 	 * @param lits
 	 * @throws IOException 
 	 */

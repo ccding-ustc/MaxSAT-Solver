@@ -22,7 +22,7 @@ public class ILeague {
 	Map<ILeague, Integer>  neighbors;
 	
 	public ILeague(List<IVariable> agents){
-		this.agents = new ArrayList<>(agents); 
+		this.agents = agents; 
 		solution = new ArrayList<>(agents.size());
 		neighbors = new HashMap<>();
 	}
@@ -32,7 +32,7 @@ public class ILeague {
 	 * 求每个组对应最好的解
 	 * @param randomCoefSolution 采用贪婪的随机性大小
 	 */
-	public List<ILiteral> getSolution(double randomCoefSolution){
+	public List<ILiteral> getSolution(double gcs){
 		//构造每组的初始解，贪婪策略
 		if(solution.isEmpty()){
 			for(IVariable var: agents){	
