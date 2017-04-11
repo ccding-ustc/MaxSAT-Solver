@@ -50,12 +50,14 @@ public class Solver  {
 	 * @return 不相交的各个分组（联盟）
 	 */
 	public List<ILeague> constructLeagues(IFormula f, double gcl) {
-		List<ILeague> leagues = new ArrayList<>();
+		List<ILeague> leagues = new LinkedList<>();
 		while(true){
 			List<IVariable> agents = f.getAgents(gcl);
 			if(agents.isEmpty())
 				break;
-			leagues.add(new ILeague(agents));
+			ILeague league = new ILeague(agents);
+			leagues.add(league);
+			f.updateVisVars(league);
 		}
 		return leagues;
 		
@@ -147,7 +149,7 @@ public class Solver  {
 		long endTime = 0;
 		IFormula formula = this.initFormulaOfCNFFile(file.getPath());
 		List<ILeague> leagues = this.constructLeagues(formula, this.gcl);
- 		int iterations = this.ss;
+ 		int iterations = this.ss;//search steps
  		this.optSolution = new ArrayList<>();
 		List<ILiteral> solution = new ArrayList<>();
 		formula.minUnsatNum = formula.clauses.size();
@@ -169,8 +171,8 @@ public class Solver  {
 				repeated = 0;
 			}else{
 				if(++repeated > this.nls){
-					formula.unVisitedVars.addAll(formula.visitedVars);
-					formula.visitedVars.clear();
+					formula.unVisVars.addAll(formula.visVars);
+					formula.visVars.clear();
 					leagues = this.constructLeagues(formula, this.gcl);
 					repeated = 0;
 				}
@@ -207,13 +209,11 @@ public class Solver  {
 	    Date dt = new Date();  
 	    SimpleDateFormat sdf = new SimpleDateFormat("MMdd_HHmm");  
 	    String dataStr = sdf.format(dt);
-	   
 	    //建立 excel 文件，存入结果
 	    String outFile = solver.path+"results_ss"+solver.ss+"_nls"+solver.nls+"_snl"+solver.snl+
 	    		"_gcl"+solver.gcl+"_gcs"+solver.gcs+"_date"+dataStr+".xls";
  		Workbook wb = new HSSFWorkbook();
 		OutputStream os = null;
-		
 		//列出目录下所有子目录
 		File rootPath = new File(solver.path);
 		File[] paths = rootPath.listFiles();
@@ -245,7 +245,7 @@ public class Solver  {
 	 			solver.printConfigurations();
 				int runs = 0;
 	 			while(runs++ < 50){
-					long time = solver.solve(file);
+	 				long time = solver.solve(file);
 					System.out.println(time);
 					System.out.println(solver.optSolution.toString());
 					r.createCell(runs).setCellValue(solver.optUnsatNum);

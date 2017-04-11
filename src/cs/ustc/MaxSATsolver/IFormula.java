@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 
 /**
@@ -38,14 +39,14 @@ public class IFormula{
 		nbVar = nbvars;
 		nbClas = nbclauses;
 		vars = new ILiteral[nbvars];
-		clauses = new ArrayList<>(nbclauses);
-		variables = new ArrayList<>(nbvars);
+		clauses = new LinkedList<>();
+		variables = new LinkedList<>();
 		satLits = new HashSet<>(nbvars*2);
 		unsatLits = new HashSet<>(nbvars*2);
 		satClas = new HashSet<>(nbclauses);
 		unsatClas = new HashSet<>(nbclauses);
-		visVars = new ArrayList<>(nbvars);
-		unVisVars = new ArrayList<>(nbvars);
+		visVars = new LinkedList<>();
+		unVisVars = new LinkedList<>();
 	}
 	
 	/**
@@ -112,7 +113,7 @@ public class IFormula{
 	 *  通过vars添加clause
 	 * @param vars
 	 */
-	public void addClause(ArrayList<ILiteral> lits) {
+	public void addClause(List<ILiteral> lits) {
 		// create the clause
 		IClause clause = new IClause(lits);
 		clauses.add(clause);
@@ -131,16 +132,12 @@ public class IFormula{
 	public void setVariables(){
 		for (int i = 0; i < vars.length; i++) {
 			if(vars[i]!=null){
-				vars[i].unsatClas.addAll(vars[i].getClas());
-				vars[i].opposite.unsatClas.addAll(vars[i].opposite.getClas());
+				vars[i].unsatClas.addAll(vars[i].clauses);
+				vars[i].opposite.unsatClas.addAll(vars[i].opposite.clauses);
 				variables.add(new IVariable(vars[i]));
 			}
 		}
 	}
-	
-	
-
-	
 	
 	/**
 	 * get independent set 
@@ -150,8 +147,9 @@ public class IFormula{
 	 */
 	public List<IVariable> getAgents(double gcl){
 		List<IVariable> agents = new ArrayList<>();
+		List<IVariable> tmp = new ArrayList<>(unVisVars);
 		IVariable var;
-		while(!unVisitedVars.isEmpty()){
+		while(!tmp.isEmpty()){
 			if(Math.random() < gcl){
 				var = Collections.min(tmp);
 			}else{
@@ -218,7 +216,7 @@ public class IFormula{
 	 */
 	
 	public void announceSatLit(ILiteral lit){				
-		for(IClause c: lit.getClas()){
+		for(IClause c: lit.clauses){
 			if(!this.satLits.contains(lit))
 				c.satLitsNum++;
 			if(this.unsatLits.contains(lit))
@@ -236,7 +234,7 @@ public class IFormula{
 			}
 			
 		}
-		for(IClause c: lit.opposite.getClas()){
+		for(IClause c: lit.opposite.clauses){
 			if(! this.unsatLits.contains(lit.opposite))
 				c.unsatLitsNum++;
 			if(this.satLits.contains(lit.opposite))
@@ -275,9 +273,15 @@ public class IFormula{
 		}
 	}
 	
+	
+	public void updateVisVars(ILeague league){
+		this.visVars.addAll(league.agents);
+		this.unVisVars.removeAll(league.agents);
+	}
+	
 	public void resetFormula(){
-		this.unVisitedVars.addAll(this.variables);
-		this.visitedVars.clear();
+		this.unVisVars.addAll(this.variables);
+		this.visVars.clear();
 		this.satClas.clear();
 		this.unsatClas.clear();
 		this.satLits.clear();
@@ -286,9 +290,9 @@ public class IFormula{
 			v.degree = v.initDegree;
 			v.visited = false;
 			v.lit.satClas.clear();
-			v.lit.unsatClas.addAll(v.lit.getClas());
+			v.lit.unsatClas.addAll(v.lit.clauses);
 			v.oppositeLit.satClas.clear();
-			v.oppositeLit.unsatClas.addAll(v.oppositeLit.getClas());
+			v.oppositeLit.unsatClas.addAll(v.oppositeLit.clauses);
 		}
 		for(IClause c: this.clauses){
 			c.satLitsNum = 0;

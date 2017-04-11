@@ -20,9 +20,9 @@ public class TestCorrectness {
 		for(int ss: s){
 			IVariable v = f.variables.get(Math.abs(ss)-1);
 			if(ss > 0){
-				satClas.addAll(v.lit.getClas());
+				satClas.addAll(v.lit.clauses);
 			}else{
-				satClas.addAll(v.oppositeLit.getClas());
+				satClas.addAll(v.oppositeLit.clauses);
 			}
 		}
 		return (f.clauses.size() - satClas.size());

@@ -26,8 +26,8 @@ public class IVariable implements Comparable<IVariable>{
 		visited = false;
 		this.lit = lit;
 		this.oppositeLit = lit.opposite;
-		this.clauses.addAll(lit.getClas());
-		this.clauses.addAll(oppositeLit.getClas());
+		this.clauses.addAll(lit.clauses);
+		this.clauses.addAll(oppositeLit.clauses);
 	}
 	@Override
 	public int compareTo(IVariable var) {

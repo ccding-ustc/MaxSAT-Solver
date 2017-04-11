@@ -6,7 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 
@@ -64,12 +65,10 @@ public class CNFFileReader {
 		// 读取变量个数
 		vars = Integer.parseInt(stk.nextToken());
 		assert vars > 0;
-
 		// 读取句子个数
 		expectedNbOfClauses = Integer.parseInt(stk.nextToken());
 		assert expectedNbOfClauses > 0;
 		formula.init(vars, expectedNbOfClauses);
-//		System.out.println("variables:"+vars+"   clauses:"+expectedNbOfClauses);
 	}
 
 	/**
@@ -80,43 +79,30 @@ public class CNFFileReader {
 	 * @throws ParseFormatException
 	 */
 	protected void readClauses(BufferedReader in, IFormula formula)
-		throws IOException, ParseFormatException {
-		int lit, nbVars;
-		String line;
-		StringTokenizer stk;
-		ILiteral literal;
+		throws IOException, ParseFormatException {		
 		int realNbOfClauses = 0;
-		
-		ILiteral[] voc = formula.vars;
-		ArrayList<ILiteral> literals = new ArrayList<ILiteral>(10);
-
-		nbVars = voc.length;
+		int nbVars = formula.nbVar;
 		assert nbVars != 0;
 
 		while (true) {
-			line = in.readLine();
-			if (line == null || line.equals("%")) {
-				// 读取文件结束
-				if (!literals.isEmpty()) {
-					formula.addClause(literals);
-					realNbOfClauses++;
-				}
+			String line = in.readLine();
+			// 读取文件结束
+			if (line == null) {
 				break;
 			}
-
-			stk = new StringTokenizer(line);
-			while (stk.hasMoreTokens()) {
-				lit = Integer.parseInt(stk.nextToken());
+			List<ILiteral> literals = new LinkedList<>();
+			String[] strs = line.split(" ");
+			for(String str: strs) {
+				int lit = Integer.parseInt(str);
 				if (Math.abs(lit) > nbVars) {
 					throw new ParseFormatException(
 						"var id greater than maxvarid on line "+ "("+ lit+ nbVars+ ")");
 				}
 				if (lit != 0) {
-					literal = formula.getLiteral(lit);
+					ILiteral literal = formula.getLiteral(lit);
    					literals.add(literal);
 				} else {
 					formula.addClause(literals);
-					literals.clear();
 					realNbOfClauses++;
 				}
 			}

@@ -1,6 +1,5 @@
 package cs.ustc.MaxSATsolver;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -13,8 +12,8 @@ public class IClause implements Comparable<IClause>{
 	int satLitsNum;
 	int hardCoef;
 	
-	public  IClause(ArrayList<ILiteral> lits) {
-		literals = new ArrayList<ILiteral>(lits);
+	public  IClause(List<ILiteral> lits) {
+		literals = lits;
 		unsatLitsNum = 0;
 		satLitsNum = 0;
 		hardCoef = 0;

@@ -12,11 +12,10 @@ import java.util.Set;
  */
 
 public class ILiteral implements Comparable<ILiteral>{
-	private final Set<IClause> clauses; //含有该literal的所有clauses
+	final Set<IClause> clauses; //含有该literal的所有clauses
 	
 	Set<IClause> satClas;
 	Set<IClause> unsatClas;
-	
 	Set<ILiteral> neighbors;
 	int degree;
 	int initDegree;
@@ -85,9 +84,6 @@ public class ILiteral implements Comparable<ILiteral>{
 		return opposite;
 	}
     
-    public Set<IClause> getClas() {
-		return clauses;
-	}
     public String toString(){
     	return id+" ";
     }
