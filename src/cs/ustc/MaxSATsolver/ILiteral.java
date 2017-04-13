@@ -17,8 +17,6 @@ public class ILiteral implements Comparable<ILiteral>{
 	Set<IClause> satClas;
 	Set<IClause> unsatClas;
 	Set<ILiteral> neighbors;
-	int degree;
-	int initDegree;
 	ILiteral opposite; 
 	final int id;
 	int weight;
@@ -88,19 +86,19 @@ public class ILiteral implements Comparable<ILiteral>{
     	return id+" ";
     }
     
-    public double getWeightCoef(){
-    	int tmp = weight + degree;
-    	if(tmp==0)
-    		tmp=1;
-    	return (double)weight/(double)(weight+degree);
-    }
-    
-    public double getDegreeCoef(){
-    	int tmp = weight + degree;
-    	if(tmp==0)
-    		tmp=1;
-    	return (double)degree/(double)(weight+degree);
-    }
+//    public double getWeightCoef(){
+//    	int tmp = weight + degree;
+//    	if(tmp==0)
+//    		tmp=1;
+//    	return (double)weight/(double)(weight+degree);
+//    }
+//    
+//    public double getDegreeCoef(){
+//    	int tmp = weight + degree;
+//    	if(tmp==0)
+//    		tmp=1;
+//    	return (double)degree/(double)(weight+degree);
+//    }
 
 	@Override
 	public int compareTo(ILiteral lit) {

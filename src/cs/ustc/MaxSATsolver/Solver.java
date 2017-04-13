@@ -16,7 +16,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook; 
 import org.apache.poi.ss.usermodel.Row; 
@@ -42,26 +41,8 @@ public class Solver  {
 	List<ILiteral> optSolution; //optimal assignment to all variables
 	int optUnsatNum; //optimal unsatisfied clauses number
 	
-	/**
-	 * 将 formula 中每个 variable 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
-	 * 
-	 * @param f 存储 cnf 文件信息的 formula
-	 * @param gcl 寻找独立集时，采取贪婪策略的随机性大小
-	 * @return 不相交的各个分组（联盟）
-	 */
-	public List<ILeague> constructLeagues(IFormula f, double gcl) {
-		List<ILeague> leagues = new LinkedList<>();
-		while(true){
-			List<IVariable> agents = f.getAgents(gcl);
-			if(agents.isEmpty())
-				break;
-			ILeague league = new ILeague(agents);
-			leagues.add(league);
-			f.updateVisVars(league);
-		}
-		return leagues;
-		
-	}
+
+
 	
 	/**
 	 * 
@@ -72,58 +53,15 @@ public class Solver  {
 	 * @param snl 组间赋值顺序策略
 	 * @return
 	 */
-	public List<ILiteral> solveFormula(IFormula formula, List<ILeague> leagues, double gcs, String snl){
-		ILeague.initLeagueNeighbors(leagues);
-		List<ILeague> tmpLeagues = new ArrayList<>(leagues);
+	public List<ILiteral> solveFormula(IFormula formula, List<ILeague> leagues, double gcs){
 		List<ILiteral> solution = new ArrayList<>();
-		
-		//初始组
-		ILeague league = tmpLeagues.get((int)(Math.random()*tmpLeagues.size()));
 		List<ILiteral> flipLits;
-		while(true){
-			//若存在与所有组都不相关的组，则需要随机从剩下的组中选择一个组
-			if(league == null){
-				league = leagues.get((int)(Math.random()*tmpLeagues.size()));
-			}
+		for(ILeague league: leagues){
 			flipLits = league.getSolution(gcs);
-			
 			if(!flipLits.isEmpty()){
 				formula.announceSatLits(flipLits);
 			}
 			solution.addAll(league.solution);
-			tmpLeagues.remove(league);
-			
-			if(tmpLeagues.isEmpty())
-				break;
-			if(!snl.equals("random")){
-				//根据相关性寻找下一个组
-				int tmpValue;
-				if(snl.equals("max")){
-					tmpValue = Integer.MIN_VALUE;
-				}else{
-					tmpValue = Integer.MAX_VALUE;
-				}
-				Iterator<Entry<ILeague, Integer>> it = league.neighbors.entrySet().iterator();
-				Map.Entry<ILeague, Integer> entry = null;
-				league = null;
-				while(it.hasNext()){
-					entry = it.next();
-					if(snl.equals("max")){
-						if(tmpLeagues.contains(entry.getKey()) && entry.getValue() > tmpValue){
-							league = entry.getKey();
-							tmpValue = entry.getValue();
-						}
-					}else{
-						if(tmpLeagues.contains(entry.getKey()) && entry.getValue() < tmpValue){
-							league = entry.getKey();
-							tmpValue = entry.getValue();
-						}
-					}
-					
-				}
-			}else{
-				league = tmpLeagues.get((int)(Math.random()*tmpLeagues.size()));
-			}	
 		}
 		return solution;
 	}
@@ -135,7 +73,7 @@ public class Solver  {
 	 * @throws ParseFormatException
 	 * @throws IOException
 	 */
-	public IFormula initFormulaOfCNFFile(String cnfFile) throws ParseFormatException, IOException{
+	public IFormula initFormulaOfCNFFile(String cnfFile) throws IOException{
 		IFormula f = new IFormula();
 		CNFFileReader cnfFileReader = new CNFFileReader();
 		cnfFileReader.parseInstance(cnfFile, f);
@@ -144,23 +82,24 @@ public class Solver  {
 		return f;
 	}
 	
-	public long solve(File file) throws ParseFormatException, IOException{
+	public long solve(File file) throws IOException{
 		long beginTime = System.currentTimeMillis();
 		long endTime = 0;
+		//读取cnf文件，将信息存入formula中
 		IFormula formula = this.initFormulaOfCNFFile(file.getPath());
-		List<ILeague> leagues = this.constructLeagues(formula, this.gcl);
+		//根据图中顶点（变量）之间是否存在边，构建联盟（通过寻找独立集的方法）
+		List<ILeague> leagues = formula.constructLeagues();
+		
  		int iterations = this.ss;//search steps
  		this.optSolution = new ArrayList<>();
-		List<ILiteral> solution = new ArrayList<>();
 		formula.minUnsatNum = formula.clauses.size();
 		int repeated = 0;
 		while(iterations-- != 0){
-			solution.clear();
-			solution = this.solveFormula(formula, leagues, this.gcs, this.snl);
+			List<ILiteral> solution = this.solveFormula(formula, leagues, this.gcs);
 			//增加未满足 clauses 的权重
-			formula.increaseLitsWeightinUnsatClas();
-			//找到更好的解，更新 bestSolution 
+			formula.plusWeight();
 			
+			//找到更好的解，更新 bestSolution 
 			if(formula.unsatClas.size() <formula.minUnsatNum){
 				endTime = System.currentTimeMillis();
 				formula.minUnsatNum = formula.unsatClas.size();
@@ -171,9 +110,7 @@ public class Solver  {
 				repeated = 0;
 			}else{
 				if(++repeated > this.nls){
-					formula.unVisVars.addAll(formula.visVars);
-					formula.visVars.clear();
-					leagues = this.constructLeagues(formula, this.gcl);
+					Collections.shuffle(leagues);
 					repeated = 0;
 				}
 			}
@@ -202,7 +139,7 @@ public class Solver  {
 	 * @throws ParseFormatException
 	 * @throws ParseException 
 	 */
-	public static void main(String[] args) throws IOException, ParseFormatException, ParseException{
+	public static void main(String[] args) throws IOException, ParseException{
 		Solver solver = new Solver();
 		ExtenOptions.setParameters(solver, args); //根据命令行输入，设置相关参数
 		//格式化时间日期
@@ -235,22 +172,20 @@ public class Solver  {
 	 		java.nio.file.Files.walkFileTree(filesPath, finder);
 	 		
 			Sheet sheet = wb.createSheet(path.getName());
-			Row r = null, r2 = null;;
+			Row r = null;
 	 		int rowNum = 0;
 	 		for(File file: files){
 	 			r = sheet.createRow(rowNum++);
-	 			r2 = sheet.createRow(rowNum++);
 				r.createCell(0).setCellValue(file.getName());
 	 			System.out.println(file.getPath());
 	 			solver.printConfigurations();
-				int runs = 0;
-	 			while(runs++ < 50){
-	 				long time = solver.solve(file);
-					System.out.println(time);
-					System.out.println(solver.optSolution.toString());
-					r.createCell(runs).setCellValue(solver.optUnsatNum);
-					r2.createCell(runs).setCellValue((double)time/1000.0);
-		 		}
+ 				
+	 			long time = solver.solve(file);
+				
+	 			System.out.println(time);
+				System.out.println(solver.optSolution.toString());
+				r.createCell(1).setCellValue(solver.optUnsatNum);
+				r.createCell(2).setCellValue((double)time/1000.0);
 	 		}	
 		}
 		

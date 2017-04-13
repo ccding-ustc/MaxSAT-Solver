@@ -21,11 +21,7 @@ public class IClause implements Comparable<IClause>{
 	
 	@Override
 	public int compareTo(IClause c){
-		if(c.hardCoef == this.hardCoef){
-			return 0;
-		}else{
-			return c.hardCoef > this.hardCoef ? -1 : 1;
-		}
+		return this.hardCoef - c.hardCoef;
 	}
 	
 	@Override

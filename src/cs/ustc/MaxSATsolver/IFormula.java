@@ -69,6 +69,50 @@ public class IFormula{
 	}
 	
 	/**
+	 *  通过vars添加clause
+	 * @param vars
+	 */
+	public void addClause(List<ILiteral> lits) {
+		// create the clause
+		IClause clause = new IClause(lits);
+		clauses.add(clause);
+		for (ILiteral lit : lits) {
+			lit.addClause(clause);
+			lit.neighbors.addAll(lits);
+			lit.neighbors.remove(lit);
+		} 
+	}
+	
+	/**
+	 * 将 formula 中每个 variable 视作一个 agent，将所有 agents 按照一定规则分成若干个不相交的联盟
+	 * 
+	 * @param f 存储 cnf 文件信息的 formula
+	 * @param gcl 寻找独立集时，采取贪婪策略的随机性大小
+	 * @return 不相交的各个分组（联盟）
+	 */
+	public List<ILeague> constructLeagues(){
+		List<ILeague> leagues = new LinkedList<>();
+		while(unVisVars.size() != 0){
+			List<IVariable> agents = new LinkedList<>();
+			List<IVariable> tmp = new LinkedList<>(unVisVars);
+			IVariable var;
+			while(!tmp.isEmpty()){
+//				var = Collections.min(tmp);
+				var = tmp.get(0);
+				agents.add(var);
+				tmp.remove(var);
+				tmp.removeAll(var.neighbors);
+			}
+			ILeague league = new ILeague(agents);
+			leagues.add(league);
+			unVisVars.removeAll(agents);
+		}
+		return leagues;
+	}
+	
+	
+	
+	/**
 	 * 
 	 *  初始化每个 variable 的邻居，并设置相应的 degree
 	 */
@@ -87,8 +131,6 @@ public class IFormula{
 					var.neighbors.add(tmp);
 				}
 			}
-			var.initDegree = var.neighbors.size();
-			var.degree = var.initDegree;
 
 		}
 		unVisVars.addAll(variables);
@@ -109,22 +151,7 @@ public class IFormula{
 		return null;
 	}
 	
-	/**
-	 *  通过vars添加clause
-	 * @param vars
-	 */
-	public void addClause(List<ILiteral> lits) {
-		// create the clause
-		IClause clause = new IClause(lits);
-		clauses.add(clause);
-		for (ILiteral lit : lits) {
-			lit.addClause(clause);
-			lit.neighbors.addAll(lits);
-			lit.neighbors.remove(lit);
-			lit.degree += lits.size()-1;
-			lit.initDegree = lit.degree;
-		} 
-	}
+
 	
 	/**
 	 *  set literals
@@ -139,73 +166,18 @@ public class IFormula{
 		}
 	}
 	
-	/**
-	 * get independent set 
-	 * first, find vertexes set covers all edges
-	 * then, the complementary set of all vertexes is independent set
-	 * @return independent set
-	 */
-	public List<IVariable> getAgents(double gcl){
-		List<IVariable> agents = new ArrayList<>();
-		List<IVariable> tmp = new ArrayList<>(unVisVars);
-		IVariable var;
-		while(!tmp.isEmpty()){
-			if(Math.random() < gcl){
-				var = Collections.min(tmp);
-			}else{
-				var = tmp.get((int)(Math.random() * tmp.size()));
-			}
-			agents.add(var);
-			tmp.remove(var);
-			tmp.removeAll(var.neighbors);
-		}
-		return agents;
-	}
+
 	
 	
 	
-	
-	public void increaseLitsWeightinUnsatClas(){
+	public void plusWeight(){
 		for(IClause c: unsatClas){
-//			c.hardCoef++;
 			for(ILiteral l: c.literals){
 				l.weight++;
-				if(l.weight > 1000)
-					l.weight = 10;
 			}
 		}
 	}
 	
-	
-	public ILiteral getMaxWeightFlipLit(){
-		List<ILiteral> tmp = new ArrayList<>(unsatLits);
-		ILiteral lit = null;
-		while(tmp != null){
-			lit = Collections.max(tmp);
-			if(! lit.lastModified && lit.unsatClas.size() > 0){
-				break;
-			}else{
-				tmp.remove(lit);
-				lit = null;
-			}
-		}
-		return lit;
-	}
-	
-	
-	public ILiteral getRandomFlipLit(){
-		List<ILiteral> tmp = new ArrayList<>(unsatLits);
-		ILiteral lit = null;
-		while(tmp != null){
-			lit = tmp.get((int)(Math.random()*tmp.size()));
-			if(! lit.lastModified){
-				break;
-			}else{
-				tmp.remove(lit);
-			}
-		}
-		return lit;
-	}
 		
 	
 	/**
@@ -215,7 +187,24 @@ public class IFormula{
 	 * @throws IOException 
 	 */
 	
-	public void announceSatLit(ILiteral lit){				
+	public void announceSatLit(ILiteral lit){
+		if(this.unsatLits.contains(lit)){
+			for(IClause c: lit.clauses){
+				c.satLitsNum++;
+				c.unsatLitsNum--;
+			}
+			for(IClause c: lit.opposite.clauses){
+				c.satLitsNum--;
+				c.unsatLitsNum++;
+			}
+			this.satLits.add(lit);
+			this.satLits.remove(lit.opposite);
+			this.unsatLits.remove(lit);
+			this.unsatLits.add(lit.opposite);
+		}
+		
+		
+		
 		for(IClause c: lit.clauses){
 			if(!this.satLits.contains(lit))
 				c.satLitsNum++;
@@ -287,7 +276,6 @@ public class IFormula{
 		this.satLits.clear();
 		this.unsatLits.clear();
 		for(IVariable v: this.variables){
-			v.degree = v.initDegree;
 			v.visited = false;
 			v.lit.satClas.clear();
 			v.lit.unsatClas.addAll(v.lit.clauses);

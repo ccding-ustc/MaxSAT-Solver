@@ -47,7 +47,7 @@ public class ExtenOptions extends Options {
 		if(cmd.hasOption(ExtenOptions.PATH_SHORT_OPTION)){
 			solver.path = cmd.getOptionValue(ExtenOptions.PATH_SHORT_OPTION);
 		}else {
-			System.err.println("path is valid! cnf file not found!");
+			System.err.println("input cnf file path!");
 			System.exit(0);
 		}
 		

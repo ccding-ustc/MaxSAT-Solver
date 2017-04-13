@@ -15,19 +15,15 @@ import java.util.Set;
 public class IVariable implements Comparable<IVariable>{
 	ILiteral lit;
 	ILiteral oppositeLit;
-	Set<IClause> clauses;
+//	Set<IClause> clauses;
 	Set<IVariable> neighbors;
-	int degree;
-	int initDegree;
+	
 	boolean visited;
 	public IVariable(ILiteral lit){
-		this.clauses = new HashSet<>();
 		this.neighbors = new HashSet<>();
 		visited = false;
 		this.lit = lit;
 		this.oppositeLit = lit.opposite;
-		this.clauses.addAll(lit.clauses);
-		this.clauses.addAll(oppositeLit.clauses);
 	}
 	@Override
 	public int compareTo(IVariable var) {
