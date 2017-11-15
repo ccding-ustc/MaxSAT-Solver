@@ -1,7 +1,6 @@
 package cs.ustc.MaxSATsolver;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 
@@ -12,16 +11,14 @@ import java.util.Set;
  */
 
 public class ILiteral implements Comparable<ILiteral>{
-	final Set<IClause> clauses; //含有该literal的所有clauses
-	
+	final List<IClause> clas; //含有该literal的所有clauses
 	Set<IClause> satClas;
 	Set<IClause> unsatClas;
-	Set<ILiteral> neighbors;
 	ILiteral opposite; 
-	final int id;
+	public final int id;
 	int weight;
-	boolean forbid;
-	boolean lastModified;
+//	boolean forbid;
+//	boolean lastModified;
 
 	
 	/**
@@ -30,11 +27,9 @@ public class ILiteral implements Comparable<ILiteral>{
 	 */
 	protected ILiteral(int id){
 		this.id = id;
-		if (this.opposite == null) {
-			this.opposite = new ILiteral(this);
-		}
-		clauses = new HashSet<>();
-		neighbors = new HashSet<>();
+		this.opposite = new ILiteral(this);
+		clas = new LinkedList<>();
+//		neighbors = new HashMap<>();
 		satClas = new HashSet<>();
 		unsatClas = new HashSet<>();
 		weight = 0;
@@ -48,9 +43,8 @@ public class ILiteral implements Comparable<ILiteral>{
     private ILiteral(ILiteral opposite) {
         id = -opposite.id;
         this.opposite = opposite;
-        opposite.opposite = this;
-        clauses = new HashSet<>();
-        neighbors = new HashSet<>();
+        clas = new LinkedList<>();
+//        neighbors = new HashMap<>();
         satClas = new HashSet<>();
 		unsatClas = new HashSet<>();
         weight = 0;
@@ -60,21 +54,13 @@ public class ILiteral implements Comparable<ILiteral>{
     public int flipIncrease(){
     	int satNum = 0;
     	int unsatNum = 0;
-    	for(IClause c: clauses)
+    	for(IClause c: clas)
     		if(c.satLitsNum==1)
     			unsatNum++;
-    	for(IClause c: opposite.clauses)
+    	for(IClause c: opposite.clas)
     		if(c.satLitsNum==0)
     			satNum++;
     	return satNum-unsatNum;
-    }
-    
-    /**
-     * register clause
-     * @param clause
-     */
-    public void addClause(IClause clause){
-    	this.clauses.add(clause);
     }
     
     
@@ -85,20 +71,6 @@ public class ILiteral implements Comparable<ILiteral>{
     public String toString(){
     	return id+" ";
     }
-    
-//    public double getWeightCoef(){
-//    	int tmp = weight + degree;
-//    	if(tmp==0)
-//    		tmp=1;
-//    	return (double)weight/(double)(weight+degree);
-//    }
-//    
-//    public double getDegreeCoef(){
-//    	int tmp = weight + degree;
-//    	if(tmp==0)
-//    		tmp=1;
-//    	return (double)degree/(double)(weight+degree);
-//    }
 
 	@Override
 	public int compareTo(ILiteral lit) {

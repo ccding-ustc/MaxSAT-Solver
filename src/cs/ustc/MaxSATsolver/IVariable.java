@@ -1,7 +1,6 @@
 package cs.ustc.MaxSATsolver;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 /**
  * 
  * @ClassName: IVariable
@@ -13,14 +12,13 @@ import java.util.Set;
  *
  */
 public class IVariable implements Comparable<IVariable>{
-	ILiteral lit;
-	ILiteral oppositeLit;
-//	Set<IClause> clauses;
-	Set<IVariable> neighbors;
+	public ILiteral lit;
+	public ILiteral oppositeLit;
+	public Map<IVariable, Integer> neighbors;
 	
 	boolean visited;
 	public IVariable(ILiteral lit){
-		this.neighbors = new HashSet<>();
+		this.neighbors = new HashMap<>();
 		visited = false;
 		this.lit = lit;
 		this.oppositeLit = lit.opposite;

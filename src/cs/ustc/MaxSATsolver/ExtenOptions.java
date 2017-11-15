@@ -15,35 +15,28 @@ public class ExtenOptions extends Options {
 	static final String PATH_SHORT_OPTION = "p";
 	static final String PATH_LONG_OPTION = "path";
 	static final String PATH_DESCRIPTION = "cnf files absolute path";
-	static final String SEARCH_STEPS_SHORT_OPTION = "ss";
-	static final String SEARCH_STEPS_LONG_OPTION = "search_steps";
-	static final String SEARCH_STEPS_DESCRIPTION = "maximum search steps";
-	static final String NEWLEAGUES_STEPS_SHORT_OPTION = "nls";
-	static final String NEWLEAGUES_STEPS_LONG_OPTION = "new_leagues_steps";
-	static final String NEWLEAGUES_STEPS_DESCRIPTION = "maximum new leagues steps";
-	static final String GREEDY_COEF_STRATEGY_SHORT_OPTION = "gcs";
-	static final String GREEDY_COEF_STRATEGY_LONG_OPTION = "greedy_coef_strategy";
-	static final String GREEDY_COEF_STRATEGY_DESCRIPTION = "greedy coefficient of league strategy";
-	static final String GREEDY_COEF_LEAGUE_SHORT_OPTION = "gcl";
-	static final String GREEDY_COEF_LEAGUE_LONG_OPTION = "greedy_coef_league";
-	static final String GREEDY_COEF_LEAGUE_DESCRIPTION = "greedy coefficient of league construction";
-	static final String STRATEGY_NEXT_LEAGUE_SHORT_OPTION = "snl";
-	static final String STRATEGY_NEXT_LEAGUE_LONG_OPTION = "strategy_next_league";
-	static final String STRATEGY_NEXT_LEAGUE_DESCRIPTION = "strategy of next league to set strategy";
+	static final String NEXT_LEAGUE_STRATEGY_SHORT_OPTION = "nls";
+	static final String NEXT_LEAGUE_STRATEGY_LONG_OPTION = "next_league_strategy";
+	static final String NEXT_LEAGUE_STRATEGY_DESCRIPTION = "next league strategy";
+	static final String LEAGUE_FORMATION_STRATEGY_SHORT_OPTION = "lfs";
+	static final String LEAGUE_FORMATION_STRATEGY_LONG_OPTION = "league_formation_startegy";
+	static final String LEAGUE_FORMATION_STRATEGY_DESCRIPTION = "league formation strategy";
+	static final String OUT_LOCAL_OPT_SHORT_OPTION = "olo";
+	static final String OUT_LOCAL_OPT_LONG_OPTION = "jump_out_local_optimization";
+	static final String OUT_LOCAL_OPT_DESCRIPTION = "jump out local optimization";
 	
 	public ExtenOptions(){
 		this.addOption(PATH_SHORT_OPTION, PATH_LONG_OPTION, true, PATH_DESCRIPTION);
-		this.addOption(SEARCH_STEPS_SHORT_OPTION, SEARCH_STEPS_LONG_OPTION, true, SEARCH_STEPS_DESCRIPTION);
-		this.addOption(NEWLEAGUES_STEPS_SHORT_OPTION, NEWLEAGUES_STEPS_LONG_OPTION, true, NEWLEAGUES_STEPS_DESCRIPTION);
-		this.addOption(GREEDY_COEF_LEAGUE_SHORT_OPTION, GREEDY_COEF_LEAGUE_LONG_OPTION, true, GREEDY_COEF_LEAGUE_DESCRIPTION);
-		this.addOption(STRATEGY_NEXT_LEAGUE_SHORT_OPTION, STRATEGY_NEXT_LEAGUE_LONG_OPTION, true, STRATEGY_NEXT_LEAGUE_DESCRIPTION);
-		this.addOption(GREEDY_COEF_STRATEGY_SHORT_OPTION, GREEDY_COEF_STRATEGY_LONG_OPTION, true, GREEDY_COEF_STRATEGY_DESCRIPTION);
+		this.addOption(NEXT_LEAGUE_STRATEGY_SHORT_OPTION, NEXT_LEAGUE_STRATEGY_LONG_OPTION, true, NEXT_LEAGUE_STRATEGY_DESCRIPTION);
+		this.addOption(LEAGUE_FORMATION_STRATEGY_SHORT_OPTION, LEAGUE_FORMATION_STRATEGY_LONG_OPTION, true, LEAGUE_FORMATION_STRATEGY_DESCRIPTION);
+		this.addOption(OUT_LOCAL_OPT_SHORT_OPTION, OUT_LOCAL_OPT_LONG_OPTION, true, OUT_LOCAL_OPT_DESCRIPTION);
 	}
 	
 	public static void setParameters(Solver solver, String[] args) throws ParseException{
 		Options opts = new ExtenOptions();
 		DefaultParser defaultParser = new DefaultParser();
 		CommandLine cmd = defaultParser.parse(opts, args);
+		
 		if(cmd.hasOption(ExtenOptions.PATH_SHORT_OPTION)){
 			solver.path = cmd.getOptionValue(ExtenOptions.PATH_SHORT_OPTION);
 		}else {
@@ -51,34 +44,22 @@ public class ExtenOptions extends Options {
 			System.exit(0);
 		}
 		
-		if(cmd.hasOption(SEARCH_STEPS_SHORT_OPTION)){
-			solver.ss = Integer.parseInt(cmd.getOptionValue(SEARCH_STEPS_SHORT_OPTION));
+		if(cmd.hasOption(LEAGUE_FORMATION_STRATEGY_SHORT_OPTION)){
+			solver.lfs = cmd.getOptionValue(LEAGUE_FORMATION_STRATEGY_SHORT_OPTION);
 		}else{
-			solver.ss = Solver.DEFAULT_SEARCH_STEPS; //default search steps
+			solver.lfs = Solver.LEAGUE_FORMATION_STRATEGY;
 		}
 		
-		if(cmd.hasOption(NEWLEAGUES_STEPS_SHORT_OPTION)){
-			solver.nls = Integer.parseInt(cmd.getOptionValue(NEWLEAGUES_STEPS_SHORT_OPTION));
+		if(cmd.hasOption(NEXT_LEAGUE_STRATEGY_SHORT_OPTION)){
+			solver.nls = cmd.getOptionValue(NEXT_LEAGUE_STRATEGY_SHORT_OPTION);
 		}else{
-			solver.nls = Solver.NEW_LEAGUE_STEPS; //default new leagues steps
+			solver.nls = Solver.NEXT_LEAGUE_STRATEGY;
 		}
 		
-		if(cmd.hasOption(GREEDY_COEF_LEAGUE_SHORT_OPTION)){
-			solver.gcl = Double.parseDouble(cmd.getOptionValue(GREEDY_COEF_LEAGUE_SHORT_OPTION));
+		if(cmd.hasOption(OUT_LOCAL_OPT_SHORT_OPTION)){
+			solver.olo = cmd.getOptionValue(OUT_LOCAL_OPT_SHORT_OPTION);
 		}else{
-			solver.gcl = Solver.GREEDY_COEF_LEAGUE;
-		}
-		if(cmd.hasOption(STRATEGY_NEXT_LEAGUE_SHORT_OPTION)){
-			solver.snl = cmd.getOptionValue(STRATEGY_NEXT_LEAGUE_SHORT_OPTION);
-		}else{
-			solver.snl = Solver.STRATEGY_NEXT_LEAGUE;
-		}
-		
-		if(cmd.hasOption(GREEDY_COEF_STRATEGY_SHORT_OPTION)){
-			solver.gcs = Double.parseDouble(cmd.getOptionValue(GREEDY_COEF_STRATEGY_SHORT_OPTION));
-		}else{
-			solver.gcs = Solver.GREEDY_COEF_STRATEGY;
+			solver.olo = Solver.OUT_LOCAL_OPT;
 		}
 	}
-
 }

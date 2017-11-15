@@ -6,8 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -66,20 +65,22 @@ public class CNFFileReader {
 	 * @throws ParseFormatException
 	 */
 	protected void readClauses(BufferedReader in, IFormula formula)
-		throws IOException{		
+		throws IOException{	
+		String line = null;
 		while (true) {
-			String line = in.readLine();
+			line = in.readLine();
 			// 读取文件结束
 			if (line == null) {
 				break;
 			}
-			List<ILiteral> literals = new LinkedList<>();
-			String[] strs = line.split(" ");
-			for(String str: strs) {
-				int lit = Integer.parseInt(str);
-				if (lit != 0) {
-					ILiteral literal = formula.getLiteral(lit);
-   					literals.add(literal);
+			StringTokenizer st = new StringTokenizer(line, " ");
+			List<ILiteral> literals = new ArrayList<>();
+			
+			while(st.hasMoreTokens()) {
+				int id = Integer.parseInt(st.nextToken());
+				if (id != 0) {
+					ILiteral lit = formula.getLiteral(id);
+   					literals.add(lit);
 				} else {
 					formula.addClause(literals);
 				}
@@ -99,6 +100,19 @@ public class CNFFileReader {
 		readProblemLine(in, formula);
 		readClauses(in, formula);
 
+	}
+	
+	/**
+	 *  读取 cnf 文件，并将信息存入到 formula 中
+	 * @param cnfFile
+	 * @return formula
+	 * @throws ParseFormatException
+	 * @throws IOException
+	 */
+	public IFormula initFormulaOfCNFFile(String cnfFile) throws IOException{
+		IFormula f = new IFormula();
+		parseInstance(cnfFile, f);
+		return f;
 	}
 }
 
